@@ -1,0 +1,31 @@
+{
+  "inverted_index": {
+    "server": {
+      "chunk_1": 3,
+      "chunk_4": 5
+    },
+    "configure": {
+      "chunk_1": 1
+    }
+  },
+  
+  "chunk_catalog": {
+    "chunk_1": {
+      "file_path": "data/raw/vllm-0.10.1/docs/serving.md",
+      "first_character_index": 0,
+      "last_character_index": 400
+    },
+    "chunk_4": {
+      "file_path": "data/raw/vllm-0.10.1/vllm/server.py",
+      "first_character_index": 1200,
+      "last_character_index": 1900
+    }
+  },
+
+  "chunk_lengths": {
+    "chunk_1": 400,
+    "chunk_4": 700
+  },
+
+  "total_chunks": 13466
+}

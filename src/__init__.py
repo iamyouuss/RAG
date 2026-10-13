@@ -1,5 +1,5 @@
-from .file_retrieving import open_files
+from .file_retrieving import RAG
 
 __all__ = [
-    "open_files"
+    "RAG"
     ]

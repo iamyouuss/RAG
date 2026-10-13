@@ -1,8 +1,9 @@
-from src import open_files
+from src import RAG
 
 
 def main() -> None:
-    open_files()
+    rag = RAG(path="data/raw/vllm-0.10.1")
+    rag.get_started()
 
 
 if __name__ == "__main__":
