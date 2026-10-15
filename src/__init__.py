@@ -1,5 +1,7 @@
-from .file_retrieving import RAG
+from .source_management import RAG
+from .cli import CLI
 
 __all__ = [
-    "RAG"
+    "RAG",
+    "CLI"
     ]

@@ -1,10 +1,28 @@
+import argparse
 import os
 from .models import MinimalSource
 
 
 class Indexer():
     def __init__(self) -> None:
+        self.inverted_index: dict[str, int] = {}
+
+    def index_source(self, cleaned_content: str) -> None:
         ...
+
+    def ponctuation(self, content: str) -> str:
+        ...
+
+    def normalize(self, content: str) -> str:
+        ...
+
+    def filter_words(self, content: str) -> str:
+        ...
+
+    def clean_sources(self, content: str) -> None:
+        self.ponctuation(content)
+        self.normalize(content)
+        self.filter_words(content)
 
 
 class Chunker():
@@ -57,12 +75,18 @@ class FileLoader():
 
 
 class RAG():
-    def __init__(self, path: str, chunk_size: int) -> None:
-        self.path: str = path
-        self.chunk_size: int = chunk_size
+    def __init__(self) -> None:
+        self.path: str = ""
+        self.chunk_size: int = 0
 
     def get_started(self) -> None:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--max_chunk_size", type=int, default=2000)
+        parser.add_argument("--path", type=str, default="data/raw/vllm-0.10.1")
+        args = parser.parse_args()
+        self.path = args.path
+        self.chunk_size = args.max_chunk_size
         indexer = Indexer()
-        chunker = Chunker(self.chunk_size, indexer)
-        Fl = FileLoader(self.path, chunker)
-        Fl.open_files()
+        _ = Chunker(self.chunk_size, indexer)
+        # Fl = FileLoader(self.path, chunker)
+        # Fl.open_files()
