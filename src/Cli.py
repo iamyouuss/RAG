@@ -1,27 +1,31 @@
-
+from .Indexer import Indexer
+from .Chunker import Chunker
 import os
 
 
 class CLI():
     def __init__(self) -> None:
         self.files_path: list[str] = []
+        self.chunker: Chunker
 
-    def process_data(self, path_to_raw: str = "data/raw") -> list[str]:
+    def process_data(self, path_to_raw: str) -> None:
         files_path: list[str] = []
         for root, _, files in os.walk(path_to_raw):
             for file in files:
                 if file.endswith((".txt", ".md", ".py")):
                     file_path = os.path.join(root, file)
                     files_path.append(file_path)
-                    # with open(file_path, 'r') as f:
-                    #    content = f.read()
-        return files_path
+        self.files_path = files_path
 
     def index(self, path_to_raw: str = "data/raw",
               path_to_processed: str = "data/processed",
               max_chunk_size: int = 2000):
-        self.files_path = self.process_data(path_to_raw)
-
+        self.process_data(path_to_raw)
+        indexer = Indexer()
+        chunker = Chunker(max_chunk_size, indexer)
+        self.chunker = chunker
+        for file in self.files_path:
+            self.chunker.chunk_file()
 
     def search(self, query: str, k: int):
         ...
