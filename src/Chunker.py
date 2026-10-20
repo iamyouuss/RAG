@@ -9,26 +9,36 @@ class Chunker():
         self.sources: dict[str, MinimalSource] = {}
         self.indexer = indexer
 
-    def add_source(self, file_path: str, start: int, end: int) -> None:
+    def add_source(self, file_path: str, chunked_content: str,
+                   start: int, end: int) -> None:
         chunk = MinimalSource(file_path=file_path,
                               first_character_index=start,
                               last_character_index=end)
-        self.sources[f"chunk_{self.counter}"] = chunk
+        chunk_nb = f"chunk_{self.counter}"
+        self.sources[chunk_nb] = chunk
         self.counter += 1
-        self.indexer.index_source(chunk)
+        self.indexer.index_source(chunked_content, chunk_nb)
 
     def code_chunking(self, file_path: str, content: str, length: int) -> None:
-        self.add_source(file_path, 0, 200)
+        for i in range(0, length, self.chunk_size):
+            end = min(i + self.chunk_size, length)
+            chunked_content = content[i:end]
+            self.add_source(file_path, chunked_content, i, end)
 
     def text_chunking(self, file_path: str, content: str, length: int) -> None:
-        self.add_source(file_path, 0, 200)
+        for i in range(0, length, self.chunk_size):
+            end = min(i + self.chunk_size, length)
+            chunked_content = content[i:end]
+            self.add_source(file_path, chunked_content, i, end)
 
     def chunk_file(self, file_path: str) -> None:
-        with open(file_path, 'r') as f:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
         length = len(content)
+        if length == 0:
+            return
         if length <= self.chunk_size:
-            self.add_source(file_path, 0, length - 1)
+            self.add_source(file_path, content[0: length], 0, length)
         else:
             match file_path.split(".")[-1]:
                 case "py":

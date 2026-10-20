@@ -1,12 +1,14 @@
 from .Indexer import Indexer
 from .Chunker import Chunker
 import os
+import json
 
 
 class CLI():
     def __init__(self) -> None:
         self.files_path: list[str] = []
         self.chunker: Chunker
+        self.indexer: Indexer
 
     def process_data(self, path_to_raw: str) -> None:
         files_path: list[str] = []
@@ -21,11 +23,18 @@ class CLI():
               path_to_processed: str = "data/processed",
               max_chunk_size: int = 2000):
         self.process_data(path_to_raw)
-        indexer = Indexer()
-        chunker = Chunker(max_chunk_size, indexer)
-        self.chunker = chunker
-        for file in self.files_path:
-            self.chunker.chunk_file()
+        self.indexer = Indexer()
+        self.chunker = Chunker(max_chunk_size, self.indexer)
+        for file_path in self.files_path:
+            self.chunker.chunk_file(file_path)
+        os.makedirs(path_to_processed, exist_ok=True)
+        path_to_sources = os.path.join(path_to_processed, "sources.json")
+        path_to_index = os.path.join(path_to_processed, "index.json")
+        with open(path_to_sources, "w", encoding="utf-8") as f:
+            json.dump(self.chunker.sources, f,
+                      default=lambda x: x.model_dump(), indent=4)
+        with open(path_to_index, "w", encoding="utf-8") as f:
+            json.dump(self.indexer.index, f, indent=4)
 
     def search(self, query: str, k: int):
         ...
