@@ -32,9 +32,13 @@ class Chunker():
             self.add_source(file_path, chunked_content, i, end)
 
     def chunk_file(self, file_path: str) -> None:
-        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-            content = f.read()
-        length = len(content)
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+            length = len(content)
+        except FileNotFoundError:
+            print(f"Cannot open file '{file_path}'")
+            return
         if length == 0:
             return
         if length <= self.chunk_size:
