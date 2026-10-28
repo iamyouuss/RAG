@@ -1,12 +1,15 @@
+import uuid
+
 from .Indexer import Indexer
 from .Chunker import Chunker
 from .Retriever import Retriever
 from .Generator import Generator
-import os
+from .models import (AnsweredQuestion, MinimalAnswer, MinimalSearchResults, MinimalSource, RagDataset,
+                     StudentSearchResults, StudentSearchResultsAndAnswer)
 from pathlib import Path
-import json
-from .models import RagDataset, StudentSearchResults
 from pydantic import ValidationError
+import os
+import json
 
 RAW_DIR = "data/raw"
 PROCESSED_DIR = "data/processed"
@@ -65,11 +68,10 @@ class CLI():
         retriever = self.init_retriever(PROCESSED_DIR)
         if retriever is None:
             return
-
-        results = retriever.single_retrieve(query, k)
-        for result in results:
-            print(f"{result.file_path} [{result.first_character_index}:"
-                  f"{result.last_character_index}]")
+        sources = retriever.single_retrieve(query, k)
+        for source in sources:
+            print(f"{source.file_path} [{source.first_character_index}:"
+                  f"{source.last_character_index}]")
 
     def search_dataset(self, dataset_path: str, k: int,
                        save_directory: str = "data/output/search_results"
@@ -101,11 +103,46 @@ class CLI():
             print(f"Error occurred while saving search results: {e}")
 
     def answer(self, query: str, k: int) -> None:
+        retriever = self.init_retriever(PROCESSED_DIR)
+        if retriever is None:
+            return
+        sources: list[MinimalSource] = retriever.single_retrieve(query, k)
+        search_results = MinimalSearchResults(
+            question_id=str(uuid.uuid4()),
+            question=query,
+            retrieved_sources=sources
+        )
         generator = Generator()
-        generator.generate()
+        answer: MinimalAnswer = generator.single_answer(search_results)
+        print(f"Query: {answer.question}")
+        print(f"Answer: {answer.answer}")
+        print("Source(s):")
+        for source in answer.retrieved_sources:
+            print(f"{source.file_path} [{source.first_character_index}:"
+                  f"{source.last_character_index}]")
 
     def answer_dataset(
             self, student_search_results_path: str,
             save_directory: str = "data/output/search_results_and_answer"
             ) -> None:
-        ...
+        try:
+            with open(student_search_results_path, 'r', encoding="utf-8") as f:
+                results = json.load(f)
+                ssr = StudentSearchResults(**results)
+        except FileNotFoundError as e:
+            print(f"Cannot open file {student_search_results_path}: {e}")
+            return
+        except ValidationError as e:
+            print(f"Error occurred while loading search results: {e}")
+            return
+
+        generator = Generator()
+        try:
+            ssra: StudentSearchResultsAndAnswer = generator.dataset_answer(ssr)
+            save_dir = Path(save_directory)
+            path_to_save = save_dir / Path(student_search_results_path).name
+            save_dir.mkdir(parents=True, exist_ok=True)
+            with open(path_to_save, "w", encoding="utf-8") as f:
+                json.dump(ssra.model_dump(), f, indent=4)
+        except FileNotFoundError as e:
+            print(f"Error occurred while saving search results and anwers:{e}")
