@@ -14,6 +14,7 @@ moulinette*.zip
 .venv/
 venv/
 env/
+uv.lock
 
 __pycache__/
 *.py[cod]

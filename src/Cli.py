@@ -146,3 +146,6 @@ class CLI():
                 json.dump(ssra.model_dump(), f, indent=4)
         except FileNotFoundError as e:
             print(f"Error occurred while saving search results and anwers:{e}")
+
+    def evaluate(self) -> None:
+        ...
